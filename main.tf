@@ -9,9 +9,6 @@ locals {
 
   tags = {
     Example    = local.name
-    GithubRepo = "terraform-aws-eks"
-    GithubOrg  = "terraform-aws-modules"
-    
   }
 }
 
@@ -274,7 +271,6 @@ data "aws_iam_policy_document" "ebs" {
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
     }
   }
-
   # Required for EKS
   statement {
     sid = "Allow service-linked role use of the CMK"
@@ -314,74 +310,6 @@ data "aws_iam_policy_document" "ebs" {
       variable = "kms:GrantIsForAWSResource"
       values   = ["true"]
     }
-  }
-}
-
-# This is based on the LT that EKS would create if no custom one is specified (aws ec2 describe-launch-template-versions --launch-template-id xxx)
-# there are several more options one could set but you probably dont need to modify them
-# you can take the default and add your custom AMI and/or custom tags
-#
-# Trivia: AWS transparently creates a copy of your LaunchTemplate and actually uses that copy then for the node group. If you DONT use a custom AMI,
-# then the default user-data for bootstrapping a cluster is merged in the copy.
-
-resource "aws_launch_template" "external" {
-  name_prefix            = "external-eks-ex-"
-  description            = "EKS managed node group external launch template"
-  update_default_version = true
-
-  block_device_mappings {
-    device_name = "/dev/xvda"
-
-    ebs {
-      volume_size           = 10
-      volume_type           = "gp3"
-      delete_on_termination = true
-    }
-  }
-
-  monitoring {
-    enabled = true
-  }
-
-  network_interfaces {
-    associate_public_ip_address = false
-    delete_on_termination       = true
-  }
-
-  # if you want to use a custom AMI
-  # image_id      = var.ami_id
-
-  tag_specifications {
-    resource_type = "instance"
-
-    tags = {
-      Name      = "external_lt"
-      CustomTag = "Instance custom tag"
-    }
-  }
-
-  tag_specifications {
-    resource_type = "volume"
-
-    tags = {
-      CustomTag = "Volume custom tag"
-    }
-  }
-
-  tag_specifications {
-    resource_type = "network-interface"
-
-    tags = {
-      CustomTag = "EKS example"
-    }
-  }
-
-  tags = {
-    CustomTag = "Launch template custom tag"
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
@@ -449,23 +377,3 @@ data "aws_ami" "eks_default" {
     values = ["amazon-eks-node-${local.cluster_version}-v*"]
   }
 }
-
-#data "aws_ami" "eks_default_arm" {
-#  most_recent = true
-#  owners      = ["amazon"]
-#
-#  filter {
-#    name   = "name"
-#    values = ["amazon-eks-arm64-node-${local.cluster_version}-v*"]
-#  }
-#}
-#
-#data "aws_ami" "eks_default_bottlerocket" {
-#  most_recent = true
-#  owners      = ["amazon"]
-#
-#  filter {
-#    name   = "name"
-#    values = ["bottlerocket-aws-k8s-${local.cluster_version}-x86_64-*"]
-#  }
-#}
