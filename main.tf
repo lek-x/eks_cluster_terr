@@ -96,9 +96,10 @@ module "eks" {
     ami_type       = "AL2_x86_64"
     disk_size      = 50
     instance_types = ["t2.micro", "t2.small"]
-    min_size     = 1
-    max_size     = 4
-    desired_size = 2
+    #min_size     = 1
+    #max_size     = 5
+    #desired_size = 2
+
 
     # We are using the IRSA created below for permissions
     # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster)
