@@ -11,6 +11,7 @@ locals {
     Example    = local.name
     GithubRepo = "terraform-aws-eks"
     GithubOrg  = "terraform-aws-modules"
+    
   }
 }
 
@@ -29,7 +30,7 @@ module "eks" {
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
 
-  # IPV6
+
   cluster_ip_family = "ipv4"
   create_cni_ipv6_iam_policy = false
 
@@ -40,7 +41,6 @@ module "eks" {
     kube-proxy = {}
     vpc-cni = {
       resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
     }
   }
 
@@ -94,16 +94,13 @@ module "eks" {
   }
 
   eks_managed_node_groups = {
-    # Default node group - as provided by AWS EKS
     default_node_group = {
-      # By default, the module creates a launch template to ensure tags are propagated to instances, etc.,
-      # so we need to disable it to use the default template provided by the AWS EKS managed node group service
       create_launch_template = false
       launch_template_name   = ""
       min_size     = 3
       max_size     = 5
       desired_size = 3
-      instance_types = ["t2.micro"]
+      instance_types = ["t2.small"]
 
       # Remote access cannot be specified with a launch template
       remote_access = {
@@ -111,125 +108,7 @@ module "eks" {
         source_security_group_ids = [aws_security_group.remote_access.id]
       }
     }
-
-
-    # Complete
-   #complete = {
-   #  name            = "complete-eks-mng"
-   #  use_name_prefix = true
-
-   #  subnet_ids = module.vpc.private_subnets
-
-   #  min_size     = 1
-   #  max_size     = 4
-   #  desired_size = 1
-
-   #  ami_id                     = data.aws_ami.eks_default.image_id
-   #  enable_bootstrap_user_data = true
-   #  bootstrap_extra_args       = "--container-runtime containerd --kubelet-extra-args '--max-pods=20'"
-
-   #  pre_bootstrap_user_data = <<-EOT
-   #  export CONTAINER_RUNTIME="containerd"
-   #  export USE_MAX_PODS=false
-   #  EOT
-
-   #  post_bootstrap_user_data = <<-EOT
-   #  echo "you are free little kubelet!"
-   #  EOT
-
-   #  capacity_type        = "SPOT"
-   #  disk_size            = 50
-   #  force_update_version = true
-   #  instance_types       = ["t2.micro", "t2.small"]
-   #  labels = {
-   #    GithubRepo = "terraform-aws-eks"
-   #    GithubOrg  = "terraform-aws-modules"
-   #  }
-
-   #  #taints = [
-   #  #  {
-   #  #    key    = "dedicated"
-   #  #    value  = "gpuGroup"
-   #  #    effect = "NO_SCHEDULE"
-   #  #  }
-   #  #]
-
-   #  update_config = {
-   #    max_unavailable_percentage = 50 # or set `max_unavailable`
-   #  }
-
-   #  description = "EKS managed node group example launch template"
-
-   #  ebs_optimized           = true
-   #  vpc_security_group_ids  = [aws_security_group.additional.id]
-   #  disable_api_termination = false
-   #  enable_monitoring       = true
-
-   #  block_device_mappings = {
-   #    xvda = {
-   #      device_name = "/dev/xvda"
-   #      ebs = {
-   #        volume_size           = 10
-   #        volume_type           = "gp3"
-   #        iops                  = 3000
-   #        throughput            = 150
-   #        encrypted             = true
-   #        kms_key_id            = aws_kms_key.ebs.arn
-   #        delete_on_termination = true
-   #      }
-   #    }
-   #  }
-
-   #  metadata_options = {
-   #    http_endpoint               = "enabled"
-   #    http_tokens                 = "required"
-   #    http_put_response_hop_limit = 2
-   #    instance_metadata_tags      = "disabled"
-   #  }
-
-   #  create_iam_role          = true
-   #  iam_role_name            = "eks-managed-node-group-complete-example"
-   #  iam_role_use_name_prefix = false
-   #  iam_role_description     = "EKS managed node group complete example role"
-   #  iam_role_tags = {
-   #    Purpose = "Protector of the kubelet"
-   #  }
-   #  iam_role_additional_policies = [
-   #    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-   #  ]
-
-   #  create_security_group          = true
-   #  security_group_name            = "eks-managed-node-group-complete-example"
-   #  security_group_use_name_prefix = false
-   #  security_group_description     = "EKS managed node group complete example security group"
-   #  security_group_rules = {
-   #    phoneOut = {
-   #      description = "Hello CloudFlare"
-   #      protocol    = "udp"
-   #      from_port   = 53
-   #      to_port     = 53
-   #      type        = "egress"
-   #      cidr_blocks = ["1.1.1.1/32"]
-   #    }
-   #    phoneHome = {
-   #      description                   = "Hello cluster"
-   #      protocol                      = "udp"
-   #      from_port                     = 53
-   #      to_port                       = 53
-   #      type                          = "egress"
-   #      source_cluster_security_group = true # bit of reflection lookup
-   #    }
-   #  }
-   #  security_group_tags = {
-   #    Purpose = "Protector of the kubelet"
-   #  }
-
-   #  tags = {
-   #    ExtraTag = "EKS managed node group complete example"
-   #  }
-   #}
   }
-
   tags = local.tags
 }
 
@@ -309,11 +188,7 @@ module "vpc" {
   public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 
   enable_ipv6                     = false
-  #assign_ipv6_address_on_creation = true
   create_egress_only_igw          = true
-
-  #public_subnet_ipv6_prefixes  = [0, 1, 2]
-  #private_subnet_ipv6_prefixes = [3, 4, 5]
 
   enable_nat_gateway   = true
   single_nat_gateway   = true
@@ -476,11 +351,6 @@ resource "aws_launch_template" "external" {
   # if you want to use a custom AMI
   # image_id      = var.ami_id
 
-  # If you use a custom AMI, you need to supply via user-data, the bootstrap script as EKS DOESNT merge its managed user-data then
-  # you can add more than the minimum code you see in the template, e.g. install SSM agent, see https://github.com/aws/containers-roadmap/issues/593#issuecomment-577181345
-  # (optionally you can use https://registry.terraform.io/providers/hashicorp/cloudinit/latest/docs/data-sources/cloudinit_config to render the script, example: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/997#issuecomment-705286151)
-  # user_data = base64encode(data.template_file.launch_template_userdata.rendered)
-
   tag_specifications {
     resource_type = "instance"
 
@@ -580,22 +450,22 @@ data "aws_ami" "eks_default" {
   }
 }
 
-data "aws_ami" "eks_default_arm" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amazon-eks-arm64-node-${local.cluster_version}-v*"]
-  }
-}
-
-data "aws_ami" "eks_default_bottlerocket" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["bottlerocket-aws-k8s-${local.cluster_version}-x86_64-*"]
-  }
-}
+#data "aws_ami" "eks_default_arm" {
+#  most_recent = true
+#  owners      = ["amazon"]
+#
+#  filter {
+#    name   = "name"
+#    values = ["amazon-eks-arm64-node-${local.cluster_version}-v*"]
+#  }
+#}
+#
+#data "aws_ami" "eks_default_bottlerocket" {
+#  most_recent = true
+#  owners      = ["amazon"]
+#
+#  filter {
+#    name   = "name"
+#    values = ["bottlerocket-aws-k8s-${local.cluster_version}-x86_64-*"]
+#  }
+#}
