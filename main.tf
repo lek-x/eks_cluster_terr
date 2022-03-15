@@ -31,13 +31,6 @@ module "eks" {
 
   # IPV6
   cluster_ip_family = "ipv4"
-
-  # We are using the IRSA created below for permissions
-  # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster)
-  # and then turn this off after the cluster/node group is created. Without this initial policy,
-  # the VPC CNI fails to assign IPs and nodes cannot join the cluster
-  # See https://github.com/aws/containers-roadmap/issues/1666 for more context
-  # TODO - remove this policy once AWS releases a managed version similar to AmazonEKS_CNI_Policy (IPv4)
   create_cni_ipv6_iam_policy = false
 
   cluster_addons = {
@@ -95,17 +88,8 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
     disk_size      = 50
-    instance_types = ["t2.micro", "t2.small"]
-    #min_size     = 1
-    #max_size     = 5
-    #desired_size = 2
-
-
-    # We are using the IRSA created below for permissions
-    # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster)
-    # and then turn this off after the cluster/node group is created. Without this initial policy,
-    # the VPC CNI fails to assign IPs and nodes cannot join the cluster
-    # See https://github.com/aws/containers-roadmap/issues/1666 for more context
+    instance_types = ["t2.micro"]
+    
     iam_role_attach_cni_policy = true
   }
 
@@ -116,6 +100,10 @@ module "eks" {
       # so we need to disable it to use the default template provided by the AWS EKS managed node group service
       create_launch_template = false
       launch_template_name   = ""
+      min_size     = 3
+      max_size     = 5
+      desired_size = 3
+      instance_types = ["t2.micro"]
 
       # Remote access cannot be specified with a launch template
       remote_access = {
@@ -245,11 +233,6 @@ module "eks" {
   tags = local.tags
 }
 
-# References to resources that do not exist yet when creating a cluster will cause a plan failure due to https://github.com/hashicorp/terraform/issues/4149
-# There are two options users can take
-# 1. Create the dependent resources before the cluster => `terraform apply -target <your policy or your security group> and then `terraform apply`
-#   Note: this is the route users will have to take for adding additonal security groups to nodes since there isn't a separate "security group attachment" resource
-# 2. For addtional IAM policies, users can attach the policies outside of the cluster definition as demonstrated below
 resource "aws_iam_role_policy_attachment" "additional" {
   for_each = module.eks.eks_managed_node_groups
 
