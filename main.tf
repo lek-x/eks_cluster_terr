@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 locals {
-  name            = "ex-${replace(basename(path.cwd), "_", "-")}"
+  name            = "mycluster-${replace(basename(path.cwd), "_", "-")}"
   cluster_version = "1.21"
   region          = "eu-central-1"
 
@@ -94,10 +94,11 @@ module "eks" {
     default_node_group = {
       create_launch_template = false
       launch_template_name   = ""
-      min_size     = 3
-      max_size     = 5
-      desired_size = 3
-      instance_types = ["t2.small"]
+      min_size     = 2
+      max_size     = 3
+      desired_size = 2
+      disk_size      = 70 #increase disk size
+      instance_types = ["t2.medium"]
 
       # Remote access cannot be specified with a launch template
       remote_access = {
