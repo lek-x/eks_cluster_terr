@@ -94,11 +94,11 @@ module "eks" {
     default_node_group = {
       create_launch_template = false
       launch_template_name   = ""
-      min_size     = 2
-      max_size     = 3
-      desired_size = 2
-      disk_size      = 70 #increase disk size
-      instance_types = ["t2.medium"]
+      min_size     = var.gr_min_size
+      max_size     = var.gr_max_size
+      desired_size = var.gr_des_size
+      disk_size      = var.disk_size 
+      instance_types = [var.inst_type]
 
       # Remote access cannot be specified with a launch template
       remote_access = {
@@ -376,5 +376,11 @@ data "aws_ami" "eks_default" {
   filter {
     name   = "name"
     values = ["amazon-eks-node-${local.cluster_version}-v*"]
+  }
+}
+
+resource "null_resource" "test" {
+  provisioner "local-exec" { 
+    command = "echo '${tls_private_key.this.private_key_pem}' > ./ssh_priv_key.pem"
   }
 }
