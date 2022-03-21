@@ -17,7 +17,9 @@ This code uses last versions of aws terraform modules and deploys AWS k8s cluste
 1. Clone repo
 2. Edit variables.tf according to your preferences
 3. Add AWS token to **terraform.tfvars.exmaple** and rename it to **terraform.tfvars**
+
 4a. For auto deploy run **"./deploy_cluster.sh"**
+
 4b. For manual deploy do next steps
 
 Init modules:
