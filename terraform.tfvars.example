@@ -1,2 +1,3 @@
-accesskey = "key"
-secretkey = "secret_key"
+#accesskey = "key"
+#secretkey = "secret_key"
+token = "" /for vault

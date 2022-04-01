@@ -1,6 +1,27 @@
+#####Using vault
+#provider "aws" {
+#  access_key = "${data.vault_aws_access_credentials.creds.access_key}"
+#  secret_key = "${data.vault_aws_access_credentials.creds.secret_key}"
+#  region = local.region
+#}
+#
+#provider "vault" {
+#token = var.token
+#address = var.address
+#}
+#
+#data "vault_aws_access_credentials" "creds" {
+#  backend = "aws"
+#  role    = "terraformv2"
+#  ttl ="1h"
+#}
+
 provider "aws" {
+  access_key = var.accesskey
+  secret_key = var.secretkey
   region = local.region
 }
+
 
 locals {
   name            = "mycluster-${replace(basename(path.cwd), "_", "-")}"
@@ -8,7 +29,7 @@ locals {
   region          = "eu-central-1"
 
   tags = {
-    Example    = local.name
+    clustername    = local.name
   }
 }
 
@@ -20,7 +41,7 @@ data "aws_caller_identity" "current" {}
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "18.10.0"
+  version = "18.17.0"
 
   cluster_name                    = local.name
   cluster_version                 = local.cluster_version
@@ -107,7 +128,10 @@ module "eks" {
       }
     }
   }
-  tags = local.tags
+  tags = {
+    "k8s.io/cluster-autoscaler/${local.name}" = "owned"
+    "k8s.io/cluster-autoscaler/enabled" = "true"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "additional" {
@@ -126,6 +150,8 @@ resource "aws_iam_role_policy_attachment" "additional" {
 data "aws_eks_cluster_auth" "this" {
   name = module.eks.cluster_id
 }
+
+
 
 locals {
   kubeconfig = yamlencode({
@@ -168,7 +194,15 @@ resource "null_resource" "patch" {
     }
     command = self.triggers.cmd_patch
   }
+  #provisioner "local-exec" {
+  #  #command = "kubectl replace -f aws-auth.yaml"
+  #  command = "kubectl patch configmap/aws-auth -n kube-system --patch '$(cat ./aws-auth.yml)'"
+  #
+  #}
+  
 }
+
+
 
 ################################################################################
 # Supporting Resources

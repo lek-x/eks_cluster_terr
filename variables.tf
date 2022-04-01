@@ -1,9 +1,15 @@
 variable "accesskey" {}
 variable "secretkey" {}
-variable "region" {
-  description = "enter region desired name"
-  type    = string
-  default = "eu-central-1"
+#variable "region" {
+#  description = "enter region desired name"
+#  type    = string
+#  default = "eu-central-1"
+#}
+
+variable "token" {}
+variable "address" {
+    type = string
+    default = "http://192.168.1.17:8200"
 }
 variable "inst_type" {
   description = "enter desired instance type"

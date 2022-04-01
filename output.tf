@@ -88,21 +88,21 @@ output "cluster_oidc_issuer_url" {
 ## IAM Role
 #################################################################################
 #
-#output "cluster_iam_role_name" {
-#  description = "IAM role name of the EKS cluster"
-#  value       = module.eks.cluster_iam_role_name
-#}
-#
-#output "cluster_iam_role_arn" {
-#  description = "IAM role ARN of the EKS cluster"
-#  value       = module.eks.cluster_iam_role_arn
-#}
-#
-#output "cluster_iam_role_unique_id" {
-#  description = "Stable and unique string identifying the IAM role"
-#  value       = module.eks.cluster_iam_role_unique_id
-#}
-#
+output "cluster_iam_role_name" {
+  description = "IAM role name of the EKS cluster"
+  value       = module.eks.cluster_iam_role_name
+}
+
+output "cluster_iam_role_arn" {
+  description = "IAM role ARN of the EKS cluster"
+  value       = module.eks.cluster_iam_role_arn
+}
+
+output "cluster_iam_role_unique_id" {
+  description = "Stable and unique string identifying the IAM role"
+  value       = module.eks.cluster_iam_role_unique_id
+}
+
 #################################################################################
 ## EKS Addons
 #################################################################################
@@ -116,11 +116,11 @@ output "cluster_oidc_issuer_url" {
 ## EKS Identity Provider
 #################################################################################
 #
-#output "cluster_identity_providers" {
-#  description = "Map of attribute maps for all EKS identity providers enabled"
-#  value       = module.eks.cluster_identity_providers
-#}
-#
+output "cluster_identity_providers" {
+  description = "Map of attribute maps for all EKS identity providers enabled"
+  value       = module.eks.cluster_identity_providers
+}
+
 #################################################################################
 ## CloudWatch Log Group
 #################################################################################
@@ -139,34 +139,42 @@ output "cluster_oidc_issuer_url" {
 ## Fargate Profile
 #################################################################################
 #
-#output "fargate_profiles" {
-#  description = "Map of attribute maps for all EKS Fargate Profiles created"
-#  value       = module.eks.fargate_profiles
-#}
-#
+output "fargate_profiles" {
+  description = "Map of attribute maps for all EKS Fargate Profiles created"
+  value       = module.eks.fargate_profiles
+}
+
 #################################################################################
 ## EKS Managed Node Group
 #################################################################################
 #
-#output "eks_managed_node_groups" {
-#  description = "Map of attribute maps for all EKS managed node groups created"
-#  value       = module.eks.eks_managed_node_groups
-#}
-#
+output "eks_managed_node_groups" {
+  description = "Map of attribute maps for all EKS managed node groups created"
+  value       = module.eks.eks_managed_node_groups
+}
+
 #################################################################################
 ## Self Managed Node Group
 #################################################################################
 #
-#output "self_managed_node_groups" {
-#  description = "Map of attribute maps for all self managed node groups created"
-#  value       = module.eks.self_managed_node_groups
-#}
-#
-#################################################################################
-## Additional
-#################################################################################
-#
+output "self_managed_node_groups" {
+  description = "Map of attribute maps for all self managed node groups created"
+  value       = module.eks.self_managed_node_groups
+}
+
+################################################################################
+# Additional
+################################################################################
+
 output "aws_auth_configmap_yaml" {
   description = "Formatted yaml output for base aws-auth configmap containing roles used in cluster node groups/fargate profiles"
   value       = module.eks.aws_auth_configmap_yaml
 }
+
+#output "aws_acces_key" {
+#	value="${data.vault_aws_access_credentials.creds.access_key}"
+#}
+#
+#output "aws_secret_key" {
+#	value="${data.vault_aws_access_credentials.creds.secret_key}"
+#}
